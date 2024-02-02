@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     searchBox: {
         marginBottom: 20,
         borderColor: '#333',
-        borderWidth: 1,
+        borderWidth: 2,
         padding: 5,
     }
 });

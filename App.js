@@ -1,9 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { FlatList, ScrollView, StyleSheet, Text, View, image } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, Text, View, Image } from 'react-native';
 import {DATA} from './Data';
+import Row from './components/Row'
+import Add from './components/Add';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useEffect, useState } from 'react';
 import Constants from 'expo-constants';
+import Search from './components/Search';
 
 
 const STORAGE_KEY = '@persons_key'
@@ -22,23 +25,35 @@ const getData = async() => {
   }
 }
 
-useEffect(() => {
-  //AsyncStorage.clear()
-  setItems(DATA);
-  //getData()
-}, [])
 
-const storeData = async(value) => {
-  try{
-    const jsonValue = JSON.stringify(value)
-    await AsyncStorage.setItem(STORAGE_KEY, jsonValue)
-  } catch (ex) {
-    console.log(ex)
-  }
-}
+ const storeData = async(value) => {
+   try{
+     const jsonValue = JSON.stringify(value)
+     await AsyncStorage.setItem(STORAGE_KEY, jsonValue)
+   } catch (ex) {
+     console.log(ex)
+   }
+ }
+
+// function renderItem({item}){
+//   return (<Text>{item.lastname}</Text>);
+// }
+
+
 
 export default function App() {
+  const renderItem = ({item}) => (
+  <Text>{item.lastname}</Text>
+)
   const [persons, setPersons] = useState([]);
+  const [items, setItems] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+
+  useEffect(() => {
+    //setItems(DATA);
+    //AsyncStorage.clear()
+    getData()
+  }, [])
 
   useEffect(() => {
     const testArray = Array();
@@ -48,23 +63,28 @@ export default function App() {
     setPersons(testArray);
   },[])
 
+  const executeSearch = (search) => {
+    const searchArray = DATA.filter((item) => item.lastname.startsWith(search));
+    setItems(searchArray);
+  }
+
+  const select = (id) => {
+    setSelectedId(id);
+  }
+
   return (
-    <View style={styles.container}>
-      <ScrollView>
-        {
-          persons.map((item) => (
-            <View style={styles.rowContainer} key={item.id}>
-              <Image 
-              source={{
-              uri: item.image,
-              width: 32,
-              height: 32,
-              }}
-            />
-            <Text style={styles.rowText}>{item.name}</Text>
-            </View>
-          ))
-        }
+    <View style = {styles.rowContainer}>
+      <ScrollView style={styles.rowContainer}>
+        <Search executeSearch={executeSearch}/>
+        <Add items={items} setItems={setItems} />
+        <FlatList
+          data = {items}
+          keyExtractor={(item) => item.id}
+          extraData={selectedId}
+          renderItem = {({item}) => (
+            <Row person={item} selectedId={selectedId} select = {select}/>
+          )}
+        ></FlatList>
       </ScrollView>
     </View>
   );
@@ -82,11 +102,11 @@ const styles = StyleSheet.create({
   rowContainer: {
     flex: 1,
     flexDirection: 'row',
-    marginTop: 5,
+    margin: 16,
     borderColor: '#CCC',
     borderWidth: 1,
     borderBottomLeftRadius: 5,
-    borderTopLeftRadius: 5
+    borderTopLeftRadius: 8
   },
   image: {
     marginRight: 16
